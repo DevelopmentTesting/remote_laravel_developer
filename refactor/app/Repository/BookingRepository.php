@@ -100,25 +100,25 @@ class BookingRepository extends BaseRepository
         }
 
         $cUser = User::find($user_id);
-        $usertype = '';
+        $userType = '';
         $emergencyJobs = array();
         $noramlJobs = array();
 
         if ($cUser && $cUser->is('customer')) {
             $jobs = $cUser->jobs()->with('user.userMeta', 'user.average', 'translatorJobRel.user.average', 'language', 'feedback', 'distance')->whereIn('status', ['completed', 'withdrawbefore24', 'withdrawafter24', 'timedout'])->orderBy('due', 'desc')->paginate(15);
-            $usertype = 'customer';
-            return ['emergencyJobs' => $emergencyJobs, 'noramlJobs' => [], 'jobs' => $jobs, 'cuser' => $cUser, 'usertype' => $usertype, 'numpages' => 0, 'pagenum' => 0];
+            $userType = 'customer';
+            return ['emergencyJobs' => $emergencyJobs, 'noramlJobs' => [], 'jobs' => $jobs, 'cuser' => $cUser, 'usertype' => $userType, 'numpages' => 0, 'pagenum' => 0];
         } elseif ($cUser && $cUser->is('translator')) {
             $jobs_ids = Job::getTranslatorJobsHistoric($cUser->id, 'historic', $pagenum);
             $totaljobs = $jobs_ids->total();
             $numpages = ceil($totaljobs / 15);
 
-            $usertype = 'translator';
+            $userType = 'translator';
 
             $jobs = $jobs_ids;
             $noramlJobs = $jobs_ids;
 
-            return ['emergencyJobs' => $emergencyJobs, 'noramlJobs' => $noramlJobs, 'jobs' => $jobs, 'cuser' => $cUser, 'usertype' => $usertype, 'numpages' => $numpages, 'pagenum' => $pagenum];
+            return ['emergencyJobs' => $emergencyJobs, 'noramlJobs' => $noramlJobs, 'jobs' => $jobs, 'cuser' => $cUser, 'usertype' => $userType, 'numpages' => $numpages, 'pagenum' => $pagenum];
         }
 
 
