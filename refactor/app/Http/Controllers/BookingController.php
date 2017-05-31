@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use DTApi\Repository\BookingRepository;
 
 /**
+ * 
  * Class BookingController
  * @package DTApi\Http\Controllers
  */
@@ -43,7 +44,7 @@ class BookingController extends Controller
 
             $response = $this->repository->getUsersJobs($user_id);
 
-        } elseif($request->__authenticatedUser->user_type == env('ADMIN_ROLE_ID') || $request->__authenticatedUser->user_type == env('SUPERADMIN_ROLE_ID'))  {
+        } elseif(Auth::user()->user_type == env('ADMIN_ROLE_ID') || Auth::user()->user_type == env('SUPERADMIN_ROLE_ID'))  {
 
             $response = $this->repository->getAll($request);
 
@@ -74,7 +75,7 @@ class BookingController extends Controller
 
         return response(
             $this->repository->store(
-                $request->__authenticatedUser,
+                Auth::user(),
                 $request->all()
             )
         );
@@ -93,7 +94,7 @@ class BookingController extends Controller
             $this->repository->updateJob(
                 $id,
                 $request->except(['_token', 'submit']),
-                $request->__authenticatedUser
+                Auth::user()
             )
         );
 
@@ -148,7 +149,7 @@ class BookingController extends Controller
         return response(
             $this->repository->acceptJob(
                 $request->all(),
-                $request->__authenticatedUser
+                Auth::user()
             )
         );
 
@@ -160,7 +161,7 @@ class BookingController extends Controller
         return response(
             $this->repository->acceptJobWithId(
                 $request->get('job_id'),
-                $request->__authenticatedUser
+                Auth::user()
             )
         );
 
@@ -176,7 +177,7 @@ class BookingController extends Controller
         return response(
             $this->repository->cancelJobAjax(
                 $request->all(),
-                $request->__authenticatedUser
+                Auth::user()
             )
         );
 
@@ -216,7 +217,7 @@ class BookingController extends Controller
     {
 
         return response($this->repository->getPotentialJobs(
-            $request->__authenticatedUser
+            Auth::user()
         ));
 
     }
