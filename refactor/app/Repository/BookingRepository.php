@@ -52,36 +52,87 @@ class BookingRepository extends BaseRepository
     }
 
     /**
+     * User id can be change to a full user information like
+     * getUsersJobs($cuser) because its already redundant query
+     * then change also the booking controller
+     *
      * @param $user_id
      * @return array
      */
     public function getUsersJobs($user_id)
     {
-        $cUser = User::find($user_id);
-        $userType = '';
-        $emergencyJobs = array();
-        $normalJobs = array();
+
+        // Get current authenticated user
+        $cUser          = User::find($user_id);
+
+        // Kind of user, who are currently doing the request
+        $userType       = '';
+
+        // Stored here all the emergency jobs
+        $emergencyJobs  = array();
+
+        // Stored here all the normal jobs
+        $normalJobs     = array();
+
 
         if ($cUser && $cUser->is('customer')) {
-            $jobs = $cUser->jobs()->with('user.userMeta', 'user.average', 'translatorJobRel.user.average', 'language', 'feedback')->whereIn('status', ['pending', 'assigned', 'started'])->orderBy('due', 'asc')->get();
+
+            // Set user as customer, since its under logic customer
             $userType = 'customer';
+
+            // Get user specific job information
+            $jobs = $cUser->jobs()->with(
+                'user.userMeta',
+                'user.average',
+                'translatorJobRel.user.average',
+                'language',
+                'feedback'
+            )->whereIn(
+                'status',
+                [
+                    'pending',
+                    'assigned',
+                    'started'
+                ]
+            )->orderBy(
+                'due',
+                'asc'
+            )->get();
+
+
         } elseif ($cUser && $cUser->is('translator')) {
-            $jobs = Job::getTranslatorJobs($cUser->id, 'new');
-            $jobs = $jobs->pluck('jobs')->all();
+
+            // Set user as customer, since its under logic translator
             $userType = 'translator';
+
+            // Get user job
+            $jobs = Job::getTranslatorJobs($cUser->id, 'new');
+
+            // Return only under jobs key, its probably array
+            $jobs = $jobs->pluck('jobs')->all();
+
         }
 
         if (!empty($jobs)) {
+
+
+            // Segregate urgent and non ugent jobs
             foreach ($jobs as $jobitem) {
+
                 if ($jobitem->immediate == 'yes') {
                     $emergencyJobs[] = $jobitem;
                 } else {
                     $normalJobs[] = $jobitem;
                 }
+
             }
+
             $normalJobs = collect($normalJobs)->each(function ($item, $key) use ($user_id) {
+
                 $item['usercheck'] = Job::checkParticularJob($user_id, $item);
+
             })->sortBy('due')->all();
+
         }
 
         return ['emergencyJobs' => $emergencyJobs, 'noramlJobs' => $normalJobs, 'cuser' => $cUser, 'usertype' => $userType];
