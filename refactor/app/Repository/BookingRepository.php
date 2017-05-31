@@ -127,6 +127,7 @@ class BookingRepository extends BaseRepository
 
             }
 
+            // Iterate and assign usercheck value
             $normalJobs = collect($normalJobs)->each(function ($item, $key) use ($user_id) {
 
                 $item['usercheck'] = Job::checkParticularJob($user_id, $item);
